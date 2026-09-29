@@ -1,0 +1,1247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Client Portal — Prototype</title>
+<style>
+/* ============================================================
+   Portal de clientes — mismos tokens que la maqueta interna
+   ============================================================ */
+:root{
+  --primary:#1867C0;
+  --primary-dark:#12539B;
+  --primary-tint:#E3F2FD;
+  --orange:#FF9800;
+  --orange-dark:#F57C00;
+  --amber:#FFC107;
+  --green:#2E7D32;
+  --red:#C62828;
+  --text:#212121;
+  --text2:#757575;
+  --text3:#9E9E9E;
+  --border:#E0E0E0;
+  --border-strong:#BDBDBD;
+  --surface:#FFFFFF;
+  --rail:#FAFAFA;
+  --field:#F0F0F0;
+  --hover:#F5F5F5;
+  --shadow-1:0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.08);
+  --shadow-8:0 8px 24px rgba(0,0,0,.20), 0 4px 8px rgba(0,0,0,.12);
+  --proto:#263238;
+  --font:Roboto,"Helvetica Neue",Helvetica,Arial,"Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;font-family:var(--font);font-size:14px;color:var(--text);background:#ECEFF1;
+  -webkit-font-smoothing:antialiased}
+button{font-family:inherit}
+
+/* ---------- barra de prototipo (NO es parte del producto) ---------- */
+.proto{background:var(--proto);color:#ECEFF1;display:flex;align-items:center;gap:8px;
+  padding:0 12px;height:44px;flex-wrap:wrap}
+.proto .brand{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#90A4AE;white-space:nowrap}
+.proto .sep{width:1px;height:20px;background:#455A64;margin:0 4px}
+.proto .spacer{flex:1}
+.proto .who{font-size:12px;color:#B0BEC5}
+.proto .who b{color:#fff;font-weight:500}
+.pbtn{background:transparent;border:1px solid #546E7A;color:#CFD8DC;border-radius:4px;
+  padding:5px 10px;font-size:12px;cursor:pointer;white-space:nowrap}
+.pbtn:hover{background:#37474F;color:#fff}
+.pbtn.on{background:#1867C0;border-color:#1867C0;color:#fff}
+.pseg{display:inline-flex;border:1px solid #546E7A;border-radius:4px;overflow:hidden}
+.pseg .pbtn{border:0;border-radius:0}
+.pseg .pbtn + .pbtn{border-left:1px solid #546E7A}
+.proto select{background:#37474F;color:#ECEFF1;border:1px solid #546E7A;border-radius:4px;
+  font-size:12px;padding:5px 8px;font-family:inherit;cursor:pointer;max-width:210px}
+
+/* ---------- shell ---------- */
+.frame{height:calc(100vh - 44px);display:flex;flex-direction:column;background:var(--surface)}
+.appbar{height:52px;display:flex;align-items:center;gap:16px;padding:0 16px;background:var(--surface);
+  border-bottom:1px solid var(--border);flex:none}
+.appbar .spacer{flex:1}
+.searchbar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);
+  border-radius:22px;height:34px;padding:0 14px;width:290px;color:var(--text2);box-shadow:var(--shadow-1)}
+.searchbar input{border:0;outline:0;flex:1;font-size:13px;background:transparent;color:var(--text)}
+.bell{position:relative;color:#616161}
+.badge{position:absolute;top:-6px;right:-10px;background:#E53935;color:#fff;border-radius:10px;
+  font-size:10px;line-height:1;padding:3px 5px;font-weight:500}
+.body{flex:1;display:flex;min-height:0}
+
+.rail{width:56px;flex:none;background:var(--rail);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;align-items:center;padding-top:6px}
+.rail .caption{font-size:8px;letter-spacing:.1em;color:#B0BEC5;text-transform:uppercase;margin-bottom:8px}
+.rail-btn{width:40px;height:40px;border:0;background:transparent;border-radius:8px;cursor:pointer;
+  display:grid;place-items:center;color:#616161;margin-bottom:4px}
+.rail-btn:hover{background:#ECEFF1}
+.rail-btn.on{color:var(--primary);background:var(--primary-tint)}
+.rail .grow{flex:1}
+.content{flex:1;min-width:0;display:flex;flex-direction:column;overflow:auto}
+
+/* ---------- tablero ---------- */
+.board{padding:16px 20px 48px;flex:1}
+.boardhead{display:flex;align-items:center;gap:14px;margin-bottom:14px;min-height:30px}
+.boardhead h1{font-size:15px;font-weight:400;margin:0;flex:1}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+.col{border-radius:8px;overflow:hidden;box-shadow:var(--shadow-1);background:#fff}
+.col-head{padding:10px 12px 12px;color:#fff}
+.col-head .t{display:flex;align-items:center;gap:10px;min-height:26px}
+.col-head .t h4{margin:0;font-size:14px;font-weight:700;flex:1;letter-spacing:.01em}
+.col-head .amount{font-size:13px;font-weight:700;margin:3px 0 9px}
+.col.blue   .col-head{background:var(--primary)}
+.col.orange .col-head{background:var(--orange)}
+.col.amber  .col-head{background:var(--amber);color:#3E2723}
+.col-search{display:flex;align-items:center;gap:8px;background:#fff;border-radius:16px;height:28px;
+  padding:0 11px;color:var(--text2)}
+.col-search input{border:0;outline:0;flex:1;font-size:12px;background:transparent;min-width:0}
+.btn-oncolor{background:transparent;border:1px solid rgba(255,255,255,.85);color:#fff;border-radius:4px;
+  padding:5px 11px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+  display:inline-flex;align-items:center;gap:5px;font-weight:500}
+.btn-oncolor:hover{background:rgba(255,255,255,.18)}
+.mini-chip{border:1px solid rgba(255,255,255,.85);border-radius:11px;padding:2px 10px;font-size:10.5px;
+  color:#fff;background:transparent;cursor:pointer}
+.mini-chip.on{background:#fff;color:var(--orange-dark);border-color:#fff}
+.col-body{padding:10px;display:flex;flex-direction:column;gap:10px;min-height:70px}
+.col-empty{color:var(--text3);font-size:12.5px;text-align:center;padding:18px 8px}
+
+.qcard{border:1px solid var(--border);border-radius:6px;background:#fff;position:relative}
+.qcard .main{padding:11px 12px 8px}
+.qcard .top{display:flex;align-items:flex-start;gap:8px}
+.qcard .pn{font-size:13px;font-weight:700;flex:1;line-height:1.35}
+.qcard .qn{font-size:12.5px;color:var(--text2);margin-top:4px}
+.qcard .dt{font-size:11px;color:var(--text3);margin-top:5px}
+.qcard .expand{display:flex;justify-content:flex-end;padding:0 10px 6px;color:var(--text3)}
+
+/* ---------- filtro del representante, en la misma línea del título ---------- */
+.seg{display:inline-flex;border:1px solid #90CAF9;border-radius:4px;overflow:hidden;background:#fff}
+.seg button{border:0;background:transparent;padding:6px 12px;font-size:11.5px;cursor:pointer;color:#1565C0;
+  letter-spacing:.04em;text-transform:uppercase}
+.seg button + button{border-left:1px solid #90CAF9}
+.seg button.on{background:var(--primary);color:#fff}
+
+/* ---------- modal ---------- */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;z-index:60;padding:24px}
+.modal{background:#fff;border-radius:4px;box-shadow:var(--shadow-8);width:100%;max-width:540px;
+  max-height:90vh;display:flex;flex-direction:column}
+.modal-head{display:flex;align-items:center;gap:14px;padding:18px 24px 10px}
+.modal-head h3{margin:0;font-size:19px;font-weight:500;flex:1}
+.modal-body{padding:10px 26px 14px;overflow:auto;flex:1}
+.modal-foot{display:flex;justify-content:flex-end;padding:10px 20px 16px}
+/* Icono de cabecera del modal: círculo centrado, como en el software interno. */
+.modal-hero{display:grid;place-items:center;padding:2px 0 18px}
+.modal-hero .circle{width:56px;height:56px;border-radius:50%;background:var(--primary);color:#fff;
+  display:grid;place-items:center}
+
+/* campos Material de línea inferior, apilados como en la captura */
+.f{display:flex;align-items:flex-end;gap:12px;border-bottom:1px solid var(--border-strong);
+  padding-bottom:5px;margin-bottom:26px}
+.f.focus{border-bottom:2px solid var(--primary);padding-bottom:4px}
+.f .fic{color:#78909C;flex:none;margin-bottom:2px}
+.f .fbox{flex:1;min-width:0}
+.f .flab{display:block;font-size:10.5px;color:var(--text2)}
+.f input,.f select{border:0;outline:0;width:100%;font-size:13.5px;font-family:inherit;color:var(--text);
+  background:transparent;padding:2px 0 0}
+.f select{cursor:pointer;-webkit-appearance:none;appearance:none}
+.f.dis{border-bottom-style:dashed;background:#FAFAFA}
+.f.dis input,.f.dis select{color:var(--text3);cursor:not-allowed}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:0 22px}
+.cbxrow{display:flex;align-items:flex-start;gap:11px;font-size:13px;line-height:1.35;margin-bottom:26px}
+.cbx{width:18px;height:18px;border:2px solid var(--text3);border-radius:2px;background:#fff;cursor:pointer;
+  display:grid;place-items:center;padding:0;flex:none;margin-top:1px}
+.cbx.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.req{color:var(--text2);font-size:11.5px;font-weight:500}
+
+.btn{border:0;border-radius:22px;padding:9px 20px;font-size:12.5px;font-weight:500;letter-spacing:.06em;
+  text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.btn-flat{background:transparent;color:var(--primary)}
+.btn-flat:hover{background:var(--primary-tint)}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border-strong)}
+.btn-outline:hover{background:var(--hover)}
+.icon-btn{width:34px;height:34px;border-radius:50%;border:0;background:transparent;cursor:pointer;
+  display:grid;place-items:center;color:#616161}
+.icon-btn:hover{background:var(--hover)}
+
+/* ---------- aviso flotante: mismo aspecto que la alerta del software ---------- */
+.toastbar{position:fixed;right:24px;bottom:16px;z-index:80;display:flex;align-items:center;gap:14px;
+  max-width:min(560px, calc(100vw - 32px));padding:14px 16px;border-radius:4px;background:var(--tb);color:#fff;
+  font-size:15px;line-height:1.4;box-shadow:0 3px 5px -1px rgba(0,0,0,.2),0 6px 10px rgba(0,0,0,.14),0 1px 18px rgba(0,0,0,.12)}
+.toastbar.ok  {--tb:#43A047}
+.toastbar.warn{--tb:#F57C00}
+.toastbar.err {--tb:#F50057}
+.toastbar svg{flex:none}
+.toastbar div{flex:1}
+.toastbar b{font-weight:600}
+.toastbar .x{border:0;background:transparent;cursor:pointer;padding:0;flex:none;display:grid;place-items:center}
+
+/* ---------- diálogo de elección de tipo de cotización ---------- */
+.choice{display:flex;align-items:flex-start;gap:14px;width:100%;text-align:left;background:#fff;
+  border:1px solid var(--border);border-radius:6px;padding:15px 16px;cursor:pointer;font-family:inherit;
+  margin-bottom:12px}
+.choice:hover{border-color:var(--primary);background:var(--primary-tint)}
+.choice .cic{width:38px;height:38px;border-radius:50%;background:var(--primary);color:#fff;flex:none;
+  display:grid;place-items:center}
+.choice .ct{display:block;font-size:14px;font-weight:500;margin-bottom:4px}
+.choice .cd{display:block;font-size:12.5px;color:var(--text2);line-height:1.5}
+
+/* ---------- avisos ---------- */
+.alert{display:flex;gap:11px;align-items:flex-start;border-radius:4px;padding:11px 14px;font-size:12.5px;
+  line-height:1.5;margin:14px 0}
+.alert .ai{flex:none;margin-top:1px}
+.alert.info{background:#E3F2FD;color:#0D47A1;border-left:4px solid var(--primary)}
+.alert.warn{background:#FFF8E1;color:#6D4C00;border-left:4px solid var(--amber)}
+.alert.err{background:#FFEBEE;color:#B71C1C;border-left:4px solid #E53935}
+.alert.ok{background:#E8F5E9;color:#1B5E20;border-left:4px solid #43A047}
+.alert b{font-weight:500}
+.mono{font-family:Consolas,Monaco,monospace;font-size:12px}
+
+/* ---------- documentos ---------- */
+.docwrap{padding:16px 20px 48px}
+.docwrap h1{font-size:15px;font-weight:400;margin:0 0 14px}
+table.tbl{width:100%;border-collapse:collapse;font-size:13px}
+table.tbl thead th{background:#EEEEEE;text-align:left;font-weight:500;color:#424242;font-size:12px;
+  padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
+table.tbl tbody td{padding:11px 12px;border-bottom:1px solid #EEEEEE;vertical-align:middle}
+table.tbl tbody tr:hover{background:#FAFAFA}
+.tbl-empty{padding:26px 12px;color:var(--text2);font-size:13px;text-align:center}
+
+/* ---------- notas de spec ---------- */
+.notes{position:fixed;right:0;top:44px;bottom:0;width:410px;background:#fff;box-shadow:var(--shadow-8);
+  z-index:70;display:flex;flex-direction:column}
+.notes header{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border);
+  background:var(--proto);color:#fff}
+.notes header h3{margin:0;font-size:14px;font-weight:500;flex:1;letter-spacing:.03em}
+.notes header .icon-btn{color:#B0BEC5}
+.notes header .icon-btn:hover{background:#37474F}
+.notes .nbody{overflow:auto;padding:16px 18px 40px;font-size:13px;line-height:1.6}
+.notes h4{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--primary);margin:20px 0 8px}
+.notes h4:first-child{margin-top:0}
+.notes ul{margin:0 0 10px;padding-left:18px}
+.notes li{margin-bottom:6px}
+.notes code{background:#F5F5F5;border-radius:3px;padding:1px 5px;font-size:12px;font-family:Consolas,Monaco,monospace}
+.notes .pill{display:inline-block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;border-radius:10px;
+  padding:2px 8px;background:#EEEEEE;color:#616161;margin-right:6px}
+.notes .pill.new{background:#E8F5E9;color:#1B5E20}
+.notes .pill.chg{background:#FFF8E1;color:#6D4C00}
+.notes blockquote{margin:8px 0;padding:8px 12px;background:#FAFAFA;border-left:3px solid var(--border-strong);
+  font-size:12.5px;color:#555}
+
+.sect{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--text2);
+  margin:26px 0 14px;font-weight:500}
+.hint{font-size:12px;color:var(--text2);line-height:1.55;margin:6px 0 22px}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <g id="s-search"><circle cx="10.8" cy="10.8" r="6.3"/><line x1="15.5" y1="15.5" x2="20.5" y2="20.5"/></g>
+  <g id="s-plus"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></g>
+  <g id="s-close"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></g>
+  <g id="s-chev-d"><polyline points="6,9.5 12,15.5 18,9.5"/></g>
+  <g id="s-more"><circle cx="12" cy="5.5" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="18.5" r="1.6" fill="currentColor" stroke="none"/></g>
+  <g id="s-dots-h"><circle cx="6" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.5" fill="currentColor" stroke="none"/></g>
+  <g id="s-person"><circle cx="12" cy="8" r="3.8"/><path d="M4.5 20.5c0-4.1 3.4-7 7.5-7s7.5 2.9 7.5 7"/></g>
+  <g id="s-mail"><rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/><path d="M4 7l8 6 8-6"/></g>
+  <g id="s-people"><circle cx="9" cy="8.5" r="3.2"/><path d="M2.8 20c0-3.5 2.8-6 6.2-6s6.2 2.5 6.2 6"/><circle cx="17.5" cy="9.5" r="2.4"/><path d="M16 14.4c3 .2 5.2 2.5 5.2 5.6"/></g>
+  <g id="s-building"><rect x="4" y="3" width="16" height="18" rx="1.5"/><g fill="currentColor" stroke="none"><rect x="7" y="6" width="2.4" height="2.4"/><rect x="10.8" y="6" width="2.4" height="2.4"/><rect x="14.6" y="6" width="2.4" height="2.4"/><rect x="7" y="10" width="2.4" height="2.4"/><rect x="10.8" y="10" width="2.4" height="2.4"/><rect x="14.6" y="10" width="2.4" height="2.4"/><rect x="7" y="14" width="2.4" height="2.4"/><rect x="10.8" y="14" width="2.4" height="2.4"/><rect x="14.6" y="14" width="2.4" height="2.4"/></g></g>
+  <g id="s-city"><rect x="3.5" y="9" width="7" height="11.5"/><rect x="12" y="4.5" width="8.5" height="16"/><g fill="currentColor" stroke="none"><rect x="5.2" y="11.5" width="1.6" height="1.6"/><rect x="7.6" y="11.5" width="1.6" height="1.6"/><rect x="14" y="7" width="1.6" height="1.6"/><rect x="17" y="7" width="1.6" height="1.6"/><rect x="14" y="11" width="1.6" height="1.6"/><rect x="17" y="11" width="1.6" height="1.6"/><rect x="14" y="15" width="1.6" height="1.6"/><rect x="17" y="15" width="1.6" height="1.6"/></g></g>
+  <g id="s-pin"><path d="M12 2.5c-3.3 0-6 2.7-6 6 0 4.4 6 12.5 6 12.5s6-8.1 6-12.5c0-3.3-2.7-6-6-6z"/><circle cx="12" cy="8.5" r="2.2"/></g>
+  <g id="s-globe"><circle cx="12" cy="12" r="8.4"/><ellipse cx="12" cy="12" rx="3.6" ry="8.4"/><line x1="3.6" y1="12" x2="20.4" y2="12"/></g>
+  <g id="s-cal"><rect x="3.8" y="5.5" width="16.4" height="14.5" rx="1.5"/><line x1="3.8" y1="10" x2="20.2" y2="10"/><line x1="8.5" y1="3.2" x2="8.5" y2="7"/><line x1="15.5" y1="3.2" x2="15.5" y2="7"/></g>
+  <g id="s-note"><rect x="4.5" y="4.5" width="15" height="15" rx="1.5"/><line x1="8" y1="9.5" x2="16" y2="9.5"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="16.5" x2="13" y2="16.5"/></g>
+  <g id="s-doc"><path d="M6.5 3.5h7l4.5 4.5v12a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 5 20V5a1.5 1.5 0 0 1 1.5-1.5z"/><polyline points="13.2,3.6 13.2,8.2 17.8,8.2"/></g>
+  <g id="s-folder"><path d="M3.5 6.5h5.5l2 2.5h9.5v9.5a1.5 1.5 0 0 1-1.5 1.5H5a1.5 1.5 0 0 1-1.5-1.5z"/></g>
+  <g id="s-product"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><polyline points="4,7.5 12,12 20,7.5"/><line x1="12" y1="12" x2="12" y2="21"/></g>
+  <g id="s-check"><polyline points="5,12.5 10,17.5 19,6.5"/></g>
+  <g id="s-warn"><path d="M12 3.5 21.5 20H2.5z"/><line x1="12" y1="9.5" x2="12" y2="14.5"/><circle cx="12" cy="17.2" r=".9" fill="currentColor" stroke="none"/></g>
+  <g id="s-shield"><path d="M12 3l7.5 2.8v5.9c0 4.7-3.2 8.8-7.5 10.3-4.3-1.5-7.5-5.6-7.5-10.3V5.8z"/></g>
+  <g id="s-lock"><rect x="5.5" y="10.5" width="13" height="9.5" rx="1.5"/><path d="M8.5 10.5V7.8a3.5 3.5 0 0 1 7 0v2.7"/></g>
+  <g id="s-arrow-r"><line x1="4" y1="12" x2="19" y2="12"/><polyline points="14,7 19,12 14,17"/></g>
+  <g id="s-logout"><path d="M14 4.5H6a1.5 1.5 0 0 0-1.5 1.5v12A1.5 1.5 0 0 0 6 19.5h8"/><polyline points="16,8.5 20.5,12 16,15.5"/><line x1="10" y1="12" x2="20" y2="12"/></g>
+  <g id="s-bell"><path d="M6.5 17V10.5a5.5 5.5 0 0 1 11 0V17l1.8 2.2H4.7z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></g>
+  <g id="s-avatar"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="9.8" r="3.1"/><path d="M6.3 19.2a7 7 0 0 1 11.4 0"/></g>
+  <g id="s-book"><rect x="4" y="4" width="16" height="16" rx="1.5"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="12" y1="9" x2="17" y2="9"/><line x1="12" y1="13" x2="17" y2="13"/></g>
+  <g id="s-download"><line x1="12" y1="4" x2="12" y2="15"/><polyline points="7.5,10.5 12,15 16.5,10.5"/><path d="M4.5 18.5h15"/></g>
+  <g id="s-clock"><circle cx="12" cy="12" r="8.5"/><polyline points="12,6.8 12,12 15.8,14"/></g>
+</defs></svg>
+
+<div id="proto" class="proto"></div>
+<div id="app"></div>
+<div id="overlay"></div>
+
+<script>
+"use strict";
+/* ==========================================================================
+   1. DATOS
+   Mismos clientes y representantes que la maqueta interna, para que las dos
+   páginas cuenten la misma historia.
+   ========================================================================== */
+const PRODUCTS = ['LOUVERS','HPL CLADDING','ALUMINUM CLADDING'];
+
+/* Mismos estados que el software interno: un cliente pedido desde aquí
+   termina en aquel catálogo, así que las dos listas deben coincidir. */
+const COUNTRIES = {
+  'United States': {
+    'Florida'      : ['Tampa','Miami','Hallandale Beach','Bonita Springs','Palm Beach Gardens'],
+    'Tennessee'    : ['Nashville','Memphis'],
+    'Massachusetts': ['Boston','Cambridge'],
+    'New York'     : ['New York','Brooklyn'],
+    'Texas'        : ['Houston','Humble','Dallas','Austin'],
+    'California'   : ['Los Angeles','San Diego','San Francisco']
+  },
+  'Colombia': {
+    'Bolívar'     : ['Cartagena'],
+    'Antioquia'   : ['Medellín'],
+    'Cundinamarca': ['Bogotá'],
+    'Atlántico'   : ['Barranquilla']
+  }
+};
+
+const SEED = {
+  clients: [
+    { id:'cli_arch', name:'Archway Trade', currency:'USD', country:'United States', state:'Florida', city:'Tampa',
+      directedQuotes:true,
+      contacts:[{ id:'ct_dl', name:'Diana Lee', role:'Purchasing' },
+                { id:'ct_rm', name:'Robert Mills', role:'Estimating' }] },
+    { id:'cli_1cg', name:'1st Choice Glass', currency:'USD', country:'United States', state:'Tennessee', city:'Nashville',
+      directedQuotes:true,
+      contacts:[{ id:'ct_tg', name:'Tom Grady', role:'Estimator' }] },
+    { id:'cli_4ga', name:'4G Architecture', currency:'USD', country:'United States', state:'Florida', city:'Palm Beach Gardens',
+      directedQuotes:true,
+      contacts:[{ id:'ct_gv', name:'Greg Vance', role:'Architect' }] },
+    { id:'cli_bisc', name:'1400 Biscayne 1, LLC', currency:'USD', country:'United States', state:'Florida', city:'Miami',
+      directedQuotes:true,
+      contacts:[{ id:'ct_ap', name:'Andrés Pinzón', role:'Construction Mgr' },
+                { id:'ct_lh', name:'Linda Hobbs', role:'Purchasing' }] },
+    { id:'cli_ictg', name:'InterContinental Cartagena de Indias', currency:'COP', country:'Colombia', state:'Bolívar', city:'Cartagena',
+      directedQuotes:false,
+      contacts:[{ id:'ct_ja', name:'Jorge Arrieta', role:'Project Manager' }] }
+  ],
+
+  salesReps: [
+    { id:'rep_mg', name:'Michael Grant', city:'Tampa', email:'michael.grant@esmetals.com' },
+    { id:'rep_lm', name:'Laura Méndez',  city:'Miami', email:'laura.mendez@esmetals.com' }
+  ],
+
+  /* La asociación se administra en el software interno; el portal solo la lee. */
+  salesRepClients: [
+    { repId:'rep_mg', clientId:'cli_arch' },
+    { repId:'rep_mg', clientId:'cli_1cg'  },
+    { repId:'rep_mg', clientId:'cli_4ga'  },
+    { repId:'rep_lm', clientId:'cli_bisc' }
+  ],
+
+  quotes: [
+    { id:'q_001', project:'Energía Solar', name:'Prueba PA', product:'LOUVERS',
+      clientId:'cli_arch', contactId:'ct_dl', stage:'bidding', status:'Draft', amount:0,
+      createdAt:'Aug/31/2026 9:12 am', delivery:'2026-11-20',
+      country:'United States', state:'Florida', city:'Tampa', notes:'Pilot batch for the south façade.',
+      docs:['bid-package-v1.pdf'], createdByType:'client', directed:false, salesRepId:null },
+    { id:'q_002', project:'Bayshore Tower', name:'Lobby Screen Package', product:'ALUMINUM CLADDING',
+      clientId:'cli_arch', contactId:'ct_rm', stage:'active', status:'PreApproved', amount:640000,
+      createdAt:'Aug/19/2026 3:40 pm', delivery:'2027-01-15',
+      country:'United States', state:'Florida', city:'Tampa', notes:'',
+      docs:['lobby-drawings.pdf','finish-schedule.xlsx'], createdByType:'client', directed:false, salesRepId:null },
+    { id:'q_003', project:'Seaport Block D', name:'Façade Louvers — Phase 1', product:'LOUVERS',
+      clientId:'cli_arch', contactId:'ct_dl', stage:'active', status:'In review', amount:1250000,
+      createdAt:'Sep/02/2026 11:05 am', delivery:'2027-03-30',
+      country:'United States', state:'Florida', city:'Tampa', notes:'Phase 1 of 3.',
+      docs:['seaport-rfp.pdf'], createdByType:'salesRep', directed:true, salesRepId:'rep_mg' },
+    { id:'q_004', project:'Nashville Retail Row', name:'HPL Rainscreen', product:'HPL CLADDING',
+      clientId:'cli_1cg', contactId:'ct_tg', stage:'bidding', status:'Draft', amount:415000,
+      createdAt:'Sep/04/2026 8:22 am', delivery:'2027-02-10',
+      country:'United States', state:'Tennessee', city:'Nashville', notes:'',
+      docs:[], createdByType:'salesRep', directed:true, salesRepId:'rep_mg' },
+    { id:'q_005', project:'4G Campus Expansion', name:'Perimeter Cladding', product:'ALUMINUM CLADDING',
+      clientId:'cli_4ga', contactId:'ct_gv', stage:'history', status:'Won', amount:1000000,
+      createdAt:'Jul/15/2026 10:00 am', delivery:'2026-12-01',
+      country:'United States', state:'Florida', city:'Palm Beach Gardens', notes:'Awarded July 2026.',
+      docs:['award-letter.pdf'], createdByType:'salesRep', directed:true, salesRepId:'rep_mg' },
+    { id:'q_006', project:'Archway Warehouse', name:'Screen Wall', product:'LOUVERS',
+      clientId:'cli_arch', contactId:'ct_rm', stage:'history', status:'Lost', amount:180000,
+      createdAt:'Jun/02/2026 4:15 pm', delivery:'2026-09-30',
+      country:'United States', state:'Florida', city:'Tampa', notes:'Client went with in-house fabrication.',
+      docs:[], createdByType:'client', directed:false, salesRepId:null },
+    /* Del representante, sin destinatario: la ruta «Quote as Client». */
+    { id:'q_007', project:'Downtown Mixed-Use', name:'Budget Estimate', product:'HPL CLADDING',
+      clientId:null, contactId:null, stage:'bidding', status:'Draft', amount:0,
+      createdAt:'Sep/05/2026 2:30 pm', delivery:'2027-04-01',
+      country:'United States', state:'Florida', city:'Tampa', notes:'Early pricing, no client attached yet.',
+      docs:[], createdByType:'salesRep', directed:false, salesRepId:'rep_mg' }
+  ]
+};
+
+/* ==========================================================================
+   2. ESTADO
+   ========================================================================== */
+let DB = clone(SEED);
+const S = {
+  role:'rep',               // 'client' | 'rep' — la maqueta abre como representante
+  clientId:'cli_arch',      // sesión cuando entra un cliente
+  repId:'rep_mg',           // sesión cuando entra un representante
+  view:'board',             // 'board' | 'documents'
+  filterOrigin:'all',       // 'all' | 'own' | 'directed'
+  search:{ bidding:'', active:'', history:'' },
+  activeChip:'all',         // chips de la columna Active Quotes
+  modal:null,
+  reqModal:null,             // alta de cliente o contacto pedida desde el portal
+  toast:null,
+  notesOpen:false
+};
+
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function $(s,r){ return (r||document).querySelector(s); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function ic(n,size,cls){
+  size = size||20;
+  return '<svg class="'+(cls||'')+'" width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" '+
+    'stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+
+    '<use href="#s-'+n+'"/></svg>';
+}
+function money(n, cur){
+  return Number(n||0).toLocaleString('en-US') + ' ' + (cur||'USD');
+}
+
+/* ==========================================================================
+   3. REGLAS
+   ========================================================================== */
+function clientsOfRep(repId){
+  const ids = DB.salesRepClients.filter(l => l.repId === repId).map(l => l.clientId);
+  return DB.clients.filter(c => ids.indexOf(c.id) !== -1);
+}
+function isAssigned(repId, clientId){
+  return DB.salesRepClients.some(l => l.repId === repId && l.clientId === clientId);
+}
+function sessionClient(){ return DB.clients.find(c => c.id === S.clientId); }
+function sessionRep(){ return DB.salesReps.find(r => r.id === S.repId); }
+
+/**
+ * Divisa del tablero. El cliente ve la suya. El representante ve varios clientes
+ * a la vez, que pueden tener divisas distintas: por ahora se muestra en USD.
+ * Pendiente de decidir cómo consolidar.
+ */
+function boardCurrency(){
+  if (S.role === 'client'){ const c = sessionClient(); return c ? c.currency : 'USD'; }
+  return 'USD';
+}
+
+/**
+ * Alcance de datos. Es exactamente lo que debe devolver el backend: ni un
+ * registro de más. El filtrado visual va aparte, sobre este conjunto.
+ */
+function scopedQuotes(){
+  if (S.role === 'client') return DB.quotes.filter(q => q.clientId === S.clientId);
+  const allowed = clientsOfRep(S.repId).map(c => c.id);
+  return DB.quotes.filter(q =>
+    /* Lo que creó este representante — dirigido o no — más lo que crearon
+       por su cuenta los clientes que tiene asignados. */
+    (q.createdByType === 'salesRep' && q.salesRepId === S.repId) ||
+    (q.createdByType === 'client'   && allowed.indexOf(q.clientId) !== -1));
+}
+
+function visibleQuotes(){
+  let qs = scopedQuotes();
+  if (S.role === 'rep' && S.filterOrigin === 'directed')
+    qs = qs.filter(q => q.createdByType === 'salesRep' && q.directed);
+  return qs;
+}
+
+/** Validación de servidor simulada. La misma que debe vivir en el backend. */
+function backendValidate(payload){
+  if (S.role !== 'rep') return { ok:true };
+  const rep = sessionRep();
+  if (!payload.targetClientId)
+    return { ok:false, msg:'Target client is required.' };
+  if (!isAssigned(rep.id, payload.targetClientId))
+    return { ok:false,
+      msg:'PERMISSION_DENIED: client '+payload.targetClientId+' is not assigned to sales rep '+rep.id+'.' };
+  const c = DB.clients.find(x => x.id === payload.targetClientId);
+  if (!c.directedQuotes)
+    return { ok:false, msg:'Directed Quotes is not enabled for this client.' };
+  if (payload.targetContactId && !c.contacts.some(k => k.id === payload.targetContactId))
+    return { ok:false, msg:'The contact does not belong to the target client.' };
+  return { ok:true };
+}
+
+/* ==========================================================================
+   4. BARRA DE PROTOTIPO
+   ========================================================================== */
+function renderProto(){
+  const rep = sessionRep(), cli = sessionClient();
+  const picker = S.role === 'client'
+    ? '<select data-act="pickClient">'+DB.clients.map(c =>
+        '<option value="'+c.id+'"'+(c.id===S.clientId?' selected':'')+'>'+esc(c.name)+'</option>').join('')+'</select>'
+    : '<select data-act="pickRep">'+DB.salesReps.map(r =>
+        '<option value="'+r.id+'"'+(r.id===S.repId?' selected':'')+'>'+esc(r.name)+'</option>').join('')+'</select>';
+
+  $('#proto').innerHTML =
+    '<span class="brand">Prototype</span>'+
+    '<span class="brand" style="color:#607D8B">Client portal</span>'+
+    '<span class="sep"></span>'+
+    '<span class="brand">Sign in as</span>'+
+    '<div class="pseg">'+
+      '<button class="pbtn '+(S.role==='client'?'on':'')+'" data-act="role" data-v="client">Client</button>'+
+      '<button class="pbtn '+(S.role==='rep'?'on':'')+'" data-act="role" data-v="rep">Sales Rep</button>'+
+    '</div>'+
+    picker+
+    '<div class="spacer"></div>'+
+    '<span class="who">Session: <b>'+esc(S.role==='client' ? (cli?cli.name:'—') : (rep?rep.name:'—'))+
+      '</b> · role '+(S.role==='client'?'client':'salesRep')+'</span>'+
+    '<span class="sep"></span>'+
+    '<button class="pbtn '+(S.notesOpen?'on':'')+'" data-act="notes">Spec notes</button>'+
+    '<button class="pbtn" data-act="reset">Reset data</button>';
+}
+
+/* ==========================================================================
+   5. SHELL
+   ========================================================================== */
+function shell(inner){
+  return '<div class="frame">'+
+    '<div class="appbar">'+
+      '<div class="spacer"></div>'+
+      '<div class="searchbar">'+ic('search',17)+'<input placeholder="Search"></div>'+
+      '<div class="bell">'+ic('bell',21)+'<span class="badge">3</span></div>'+
+      '<span style="color:#616161">'+ic('avatar',24)+'</span>'+
+    '</div>'+
+    '<div class="body">'+rail()+'<div class="content">'+inner+'</div></div>'+
+  '</div>';
+}
+
+function rail(){
+  return '<div class="rail">'+
+    '<div class="caption">ES&nbsp;Metals</div>'+
+    '<button class="rail-btn '+(S.view==='board'?'on':'')+'" data-act="view" data-v="board" title="Main Board">'+
+      ic('person',22)+'</button>'+
+    '<button class="rail-btn '+(S.view==='documents'?'on':'')+'" data-act="view" data-v="documents" title="Documents">'+
+      ic('folder',22)+'</button>'+
+    '<div class="grow"></div>'+
+    '<button class="rail-btn" title="Log out">'+ic('logout',22)+'</button>'+
+  '</div>';
+}
+
+/* ==========================================================================
+   6. MAIN BOARD
+   ========================================================================== */
+function viewBoard(){
+  const cur = boardCurrency();
+  const qs  = visibleQuotes();
+
+  const column = (cls, title, stage, extra) => {
+    const all  = qs.filter(q => q.stage === stage);
+    const term = (S.search[stage] || '').toLowerCase();
+    let items  = term
+      ? all.filter(q => (q.project+' '+q.name+' '+q.product).toLowerCase().indexOf(term) !== -1)
+      : all;
+    if (stage === 'active' && S.activeChip === 'pre')
+      items = items.filter(q => q.status === 'PreApproved');
+    const total = items.reduce((a,q) => a + q.amount, 0);
+    return '<div class="col '+cls+'">'+
+      '<div class="col-head">'+
+        '<div class="t"><h4>'+title+' ('+items.length+')</h4>'+(extra||'')+'</div>'+
+        '<div class="amount">'+money(total, cur)+'</div>'+
+        '<div class="col-search">'+ic('search',14)+
+          '<input placeholder="Search" value="'+esc(S.search[stage])+'" data-act="search" data-v="'+stage+'">'+
+        '</div>'+
+      '</div>'+
+      '<div class="col-body">'+
+        (items.length ? items.map(q => card(q, cur)).join('')
+                      : '<div class="col-empty">'+(term?'No matches':'No quotes')+'</div>')+
+      '</div></div>';
+  };
+
+  return '<div class="board">'+
+    '<div class="boardhead"><h1>Main Board</h1>'+
+      (S.role === 'rep' ? repFilter() : '')+
+    '</div>'+
+    '<div class="cols">'+
+      column('blue','Bidding Calculator','bidding',
+        '<button class="btn-oncolor" data-act="newQuote">'+ic('plus',13)+'New Request</button>')+
+      column('orange','Active Quotes','active',
+        '<button class="mini-chip '+(S.activeChip==='all'?'on':'')+'" data-act="chip" data-v="all">All</button> '+
+        '<button class="mini-chip '+(S.activeChip==='pre'?'on':'')+'" data-act="chip" data-v="pre">PreApproved</button>')+
+      column('amber','History','history','')+
+    '</div>'+
+  '</div>'+
+    /* Aviso al pie del software, no dentro del tablero: se lee aunque las
+       columnas estén desplazadas. */
+    (S.toast ? '<div class="toastbar '+S.toast.kind+'">'+
+        /* Iconos rellenos en blanco, con el trazo interior del color del aviso. */
+        (S.toast.kind === 'ok'
+          ? '<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#fff"/>'+
+            '<path d="M7.5 12.3l3 3 6-6.3" fill="none" stroke="var(--tb)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+          : '<svg width="26" height="24" viewBox="0 0 26 24" aria-hidden="true"><path d="M13 1.5 25 22.5H1z" fill="#fff" stroke="#fff" stroke-linejoin="round"/>'+
+            '<path d="M13 9v6" stroke="var(--tb)" stroke-width="2.4" stroke-linecap="round"/><circle cx="13" cy="18.6" r="1.4" fill="var(--tb)"/></svg>')+
+        '<div>'+S.toast.msg+'</div>'+
+        '<button class="x" data-act="toastClose" title="Dismiss">'+
+          '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#fff"/>'+
+          '<path d="M8.5 8.5l7 7M15.5 8.5l-7 7" stroke="var(--tb)" stroke-width="2.2" stroke-linecap="round"/></svg>'+
+        '</button></div>' : '');
+}
+
+/* Va en la misma línea que el título: una fila menos y nada de recuadro. */
+function repFilter(){
+  return '<div class="seg">'+
+    '<button class="'+(S.filterOrigin==='all'?'on':'')+'" data-act="fOrigin" data-v="all">All</button>'+
+    '<button class="'+(S.filterOrigin==='directed'?'on':'')+'" data-act="fOrigin" data-v="directed">Directed by me</button>'+
+  '</div>';
+}
+
+/* Exactamente lo que muestra la captura: proyecto, cotización y fecha, con el
+   menú de tres puntos y los puntos suspensivos. No se despliega nada. */
+function card(q, cur){
+  return '<div class="qcard">'+
+    '<div class="main">'+
+      '<div class="top"><div class="pn">'+esc(q.project)+'</div>'+
+        '<span style="color:var(--text3)">'+ic('more',15)+'</span></div>'+
+      '<div class="qn">'+esc(q.name)+'</div>'+
+      '<div class="dt">'+esc(q.createdAt)+(q.amount?' · '+money(q.amount, cur):'')+'</div>'+
+    '</div>'+
+    '<div class="expand">'+ic('dots-h',16)+'</div>'+
+  '</div>';
+}
+/* ==========================================================================
+   7. DOCUMENTS
+   ========================================================================== */
+function viewDocuments(){
+  const cur  = boardCurrency();
+  const rows = [];
+  visibleQuotes().forEach(q => q.docs.forEach(d => rows.push({ doc:d, q:q })));
+  return '<div class="docwrap">'+
+    '<h1>Documents</h1>'+
+    '<p class="hint" style="max-width:640px">Bid documents attached to your quotes. A sales rep sees only the '+
+      'documents of the clients they are assigned to — the same scope as the board.</p>'+
+    (rows.length
+      ? '<div style="overflow-x:auto"><table class="tbl"><thead><tr>'+
+          '<th>Document</th><th>Project</th><th>Quote</th><th>Client</th><th>Uploaded</th><th></th>'+
+        '</tr></thead><tbody>'+
+        rows.map(r => {
+          const c = DB.clients.find(x => x.id === r.q.clientId);
+          return '<tr><td>'+ic('doc',15)+' '+esc(r.doc)+'</td>'+
+            '<td>'+esc(r.q.project)+'</td>'+
+            '<td style="color:var(--text2)">'+esc(r.q.name)+'</td>'+
+            '<td>'+esc(c?c.name:'—')+'</td>'+
+            '<td style="color:var(--text2)">'+esc(r.q.createdAt)+'</td>'+
+            '<td style="text-align:right"><button class="icon-btn" title="Download">'+ic('download',17)+'</button></td></tr>';
+        }).join('')+'</tbody></table></div>'
+      : '<div class="tbl-empty">No documents yet.</div>')+
+  '</div>';
+}
+
+/* ==========================================================================
+   8. MODAL CREATE QUOTE
+   Réplica del formulario de la página 2 del PDF, más el bloque de
+   cotización dirigida que la nota manuscrita pide para el representante.
+   ========================================================================== */
+function f(label, inner, icon, dis){
+  return '<div class="f'+(dis?' dis':'')+'"><span class="fic">'+ic(icon||'note',18)+'</span>'+
+    '<span class="fbox"><span class="flab">'+label+'</span>'+inner+'</span></div>';
+}
+function sel(name, opts, val, dis){
+  return '<select data-f="'+name+'"'+(dis?' disabled':'')+'>'+
+    opts.map(o => '<option value="'+esc(o.v)+'"'+(o.v===val?' selected':'')+'>'+esc(o.t)+'</option>').join('')+
+    '</select>';
+}
+function inp(name, val, type){
+  return '<input data-f="'+name+'" type="'+(type||'text')+'" value="'+esc(val==null?'':val)+'">';
+}
+
+/* ==========================================================================
+   SOLICITUD DE ALTA DE CLIENTE / CONTACTO
+   El representante la pide desde el propio formulario. Mientras ES Metals la
+   revisa NO se crea cotización ni coste: solo queda la solicitud a la vista.
+   ========================================================================== */
+/* Clave nueva: las solicitudes de prueba de la clave anterior se descartan al abrir
+   (limpieza pedida por Natalia el 29 sep 2026). */
+const REQ_KEY = 'esm_client_requests_v2';
+try { localStorage.removeItem('esm_client_requests'); } catch(e){}
+
+/** Puente con la maqueta interna: misma sesión de navegador, mismo origen. */
+function pushRequest(req){
+  let all = [];
+  try { all = JSON.parse(localStorage.getItem(REQ_KEY) || '[]'); } catch(e){ all = []; }
+  all.push(req);
+  try { localStorage.setItem(REQ_KEY, JSON.stringify(all)); } catch(e){}
+}
+
+/** Al abrir el portal, las solicitudes pendientes vuelven a su tarjeta en Bidding. */
+function restoreRequests(){
+  let all = [];
+  try { all = JSON.parse(localStorage.getItem(REQ_KEY) || '[]'); } catch(e){ all = []; }
+  all.forEach(r => {
+    if (!r.quote || DB.quotes.some(q => q.id === r.id)) return;
+    DB.quotes.push({
+      id:r.id, project:r.quote.project, name:r.quote.name, product:r.quote.product,
+      clientId:null, contactId:null, stage:'bidding', status:'Under review', amount:0,
+      createdAt:r.createdAt, delivery:r.quote.delivery || '—',
+      country:r.quote.country, state:r.quote.state, city:r.quote.city, notes:r.quote.notes || '',
+      docs:[], createdByType:'salesRep', directed:true, salesRepId:r.repId, request:r
+    });
+  });
+}
+
+function modalRequest(m){
+  const isClient = m.kind === 'client';
+  const d = m.data;
+  const states = d.rCountry && COUNTRIES[d.rCountry] ? Object.keys(COUNTRIES[d.rCountry]) : [];
+  const cities = d.rCountry && d.rState && COUNTRIES[d.rCountry] && COUNTRIES[d.rCountry][d.rState]
+               ? COUNTRIES[d.rCountry][d.rState] : [];
+
+  /* Cada "+" abre una fila de nombre y correo que se escribe directamente:
+     no hay paso intermedio, el Save del cliente guarda todas las filas. */
+  const rowInp = (i, k, val) =>
+    '<input type="text" data-act="reqRow" data-v="'+i+'" data-k="'+k+'" value="'+esc(val||'')+'">';
+  const contactRows = (d.contacts || []).map((k, i) =>
+    '<div style="display:flex;align-items:flex-start;gap:8px">'+
+      '<div class="frow" style="flex:1">'+
+        f('Contact name *', rowInp(i, 'name', k.name), 'person')+
+        f('Contact email *', rowInp(i, 'email', k.email), 'mail')+
+      '</div>'+
+      '<button class="icon-btn" data-act="reqDelContact" data-v="'+i+'" title="Remove" '+
+        'style="width:26px;height:26px;margin-top:14px">'+ic('close',15)+'</button>'+
+    '</div>').join('');
+
+  return '<div class="scrim" data-act="reqClose"><div class="modal" data-stop style="max-width:540px">'+
+    '<div class="modal-head">'+
+      '<button class="icon-btn" data-act="reqClose" style="color:var(--primary)">'+ic('close',20)+'</button>'+
+      '<h3>'+(isClient ? 'New Client' : 'New Contact')+'</h3></div>'+
+    '<div class="modal-hero"><span class="circle">'+ic(isClient?'building':'people',28)+'</span></div>'+
+    '<div class="modal-body">'+
+      (isClient
+        ? f('Name *', inp('rName', d.rName), 'building')+
+          '<div class="frow">'+
+            f('Country *', sel('rCountry',
+              [{v:'',t:''}].concat(Object.keys(COUNTRIES).map(c => ({v:c,t:c}))), d.rCountry), 'globe')+
+            f('State', sel('rState',
+              [{v:'',t:''}].concat(states.map(s => ({v:s,t:s}))), d.rState, !d.rCountry),
+              'pin', !d.rCountry)+
+          '</div>'+
+          '<div class="frow">'+
+            f('City', sel('rCity',
+              [{v:'',t:''}].concat(cities.map(c => ({v:c,t:c}))), d.rCity, !d.rState),
+              'city', !d.rState)+
+            '<div></div>'+
+          '</div>'+
+          /* Mismo patrón que el bloque Contacts de la ficha: etiqueta y "+". */
+          '<div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">'+
+            '<span style="font-size:13px;color:var(--text2);flex:1">Contacts *</span>'+
+            '<button class="icon-btn add" data-act="reqNewContact" title="Add contact">'+ic('plus',20)+'</button>'+
+          '</div>'+
+          contactRows
+        /* Caso 2: solo nombre y correo. */
+        : '<div class="frow">'+
+            f('Name *', inp('kName', d.kName), 'person')+
+            f('Email *', inp('kEmail', d.kEmail), 'mail')+
+          '</div>')+
+      (m.error ? '<div class="alert err">'+ic('warn',18,'ai')+'<div>'+esc(m.error)+'</div></div>' : '')+
+      '<div class="req">* indicates required field</div>'+
+    '</div>'+
+    /* Cliente nuevo: un solo Save. Contacto suelto: Cancel / Add contact. */
+    '<div class="modal-foot">'+
+      (isClient
+        ? '<button class="btn btn-flat" data-act="reqSave">Save</button>'
+        : '<button class="btn btn-quiet" data-act="reqClose">Cancel</button>'+
+          '<button class="btn btn-flat" data-act="reqSave">Add contact</button>')+
+    '</div>'+
+  '</div></div>';
+}
+
+/**
+ * Un representante puede cotizar de dos maneras, así que primero se le pregunta.
+ * El cliente nunca ve este paso: para él solo existe una forma de cotizar.
+ */
+function modalChoice(){
+  const opt = (v, icon, title, desc) =>
+    '<button class="choice" data-act="pickKind" data-v="'+v+'">'+
+      '<span class="cic">'+ic(icon,20)+'</span>'+
+      '<span><span class="ct">'+title+'</span><span class="cd">'+desc+'</span></span>'+
+    '</button>';
+  return '<div class="scrim" data-act="close"><div class="modal" data-stop style="max-width:470px">'+
+    '<div class="modal-head">'+
+      '<button class="icon-btn" data-act="close" style="color:var(--primary)">'+ic('close',20)+'</button>'+
+      '<h3>New Request</h3></div>'+
+    '<div class="modal-body">'+
+      '<p class="hint" style="margin:0 0 18px">What kind of quote do you want to create?</p>'+
+      opt('directed','arrow-r','Directed Quote',
+          'Addressed to one of your assigned clients. Adds the client and contact fields, and records you as '+
+          'the sales rep behind it.')+
+      opt('standard','doc','Quote as Client',
+          'The same form your clients use, with no target client. It is filed as your own quote.')+
+    '</div>'+
+  '</div></div>';
+}
+
+function modalQuote(m){
+  const d      = m.data;
+  const isRep  = !!m.directed;   /* solo la cotización dirigida trae bloque extra */
+  const mine   = isRep ? clientsOfRep(S.repId) : [];
+  const target = isRep ? DB.clients.find(c => c.id === d.targetClientId) : null;
+  const pc     = d.pendingClient;    /* cliente nuevo pedido desde el "+" */
+  const pk     = d.pendingContact;   /* contacto nuevo pedido desde el "+" */
+
+  /* Opciones de contacto: las del cliente elegido, o las del cliente nuevo,
+     más el contacto nuevo si lo hay. Lo pendiente de revisión se rotula. */
+  const contactOpts = d.targetClientId === '__new' && pc
+    ? pc.contacts.map((k,i) => ({ v:'__new:'+i, t:k.name+'  (new — pending review)' }))
+    : (target ? target.contacts.map(k => ({ v:k.id, t:k.name })) : [])
+        .concat(pk ? [{ v:'__newc', t:pk.name+'  (new — pending review)' }] : []);
+  /* Caso 2: con un contacto nuevo suelto, el cliente deja de ser obligatorio. */
+  const clientRequired = !(pk && d.targetContactId === '__newc');
+
+  const states = d.country && COUNTRIES[d.country] ? Object.keys(COUNTRIES[d.country]) : [];
+  const cities = d.country && d.state && COUNTRIES[d.country] && COUNTRIES[d.country][d.state]
+               ? COUNTRIES[d.country][d.state] : [];
+
+  /* Bloque nuevo, visible SOLO para el representante. */
+  /* Cada campo lleva su "+": el representante puede pedir el alta de un
+     cliente o de un contacto que todavía no tenga asignado. */
+  const withPlus = (inner, act, title) =>
+    '<div style="display:flex;align-items:flex-start;gap:10px">'+
+      '<div style="flex:1;min-width:0">'+inner+'</div>'+
+      '<button class="icon-btn add" data-act="'+act+'" title="'+title+'" '+
+        'style="margin-top:6px;flex:none">'+ic('plus',20)+'</button>'+
+    '</div>';
+
+  const directed = isRep
+    ? '<div class="sect" style="margin-top:0">Directed quote</div>'+
+      withPlus(f('Quote directed to'+(clientRequired?' *':''),
+        sel('targetClientId',
+          [{v:'',t:'Select client…'}].concat(mine.map(c => ({ v:c.id,
+            t:c.name + (c.directedQuotes ? '' : '  — directed quotes off') })))
+            .concat(pc ? [{ v:'__new', t:pc.name+'  (new — pending review)' }] : []),
+          d.targetClientId), 'building'), 'reqClient', 'Request a new client')+
+      withPlus(f('Client contact *',
+        sel('targetContactId',
+          [{v:'', t: contactOpts.length ? 'Select contact…' : 'Select a client first'}]
+            .concat(contactOpts),
+          d.targetContactId, !contactOpts.length),
+        'people', !contactOpts.length), 'reqContact', 'Request a new contact')+
+      (target && !target.directedQuotes
+        ? '<div class="alert err">'+ic('warn',18,'ai')+'<div><b>'+esc(target.name)+'</b> does not have '+
+          '&laquo;Enabled Directed Quotes for Client&raquo; turned on. The backend will reject the save.</div></div>'
+        : '')
+    : '';
+
+  return '<div class="scrim" data-act="close"><div class="modal" data-stop>'+
+    '<div class="modal-head">'+
+      '<button class="icon-btn" data-act="close" style="color:var(--primary)">'+ic('close',20)+'</button>'+
+      '<h3>Create Quote</h3></div>'+
+    '<div class="modal-body">'+
+      directed+
+      f('Product *', sel('product', [{v:'',t:'Select…'}].concat(PRODUCTS.map(p => ({v:p,t:p}))), d.product), 'product')+
+      f('Project Name *', inp('project', d.project), 'building')+
+      f('Quote Name *', inp('name', d.name), 'doc')+
+      f('Estimated Delivery Date *', inp('delivery', d.delivery, 'date'), 'cal')+
+      f('Bid documents', inp('docs', d.docs), 'doc')+
+      f('Notes', inp('notes', d.notes), 'note')+
+      '<div class="frow">'+
+        f('Country *', sel('country',
+          [{v:'',t:'Select…'}].concat(Object.keys(COUNTRIES).map(c => ({v:c,t:c}))), d.country), 'globe')+
+        f('State *', sel('state',
+          [{v:'', t: d.country ? 'Select…' : 'Select a country first'}]
+            .concat(states.map(s => ({v:s,t:s}))), d.state, !d.country), 'pin', !d.country)+
+      '</div>'+
+      '<div class="frow">'+
+        f('City *', sel('city',
+          [{v:'', t: d.state ? 'Select…' : 'Select a state first'}]
+            .concat(cities.map(c => ({v:c,t:c}))), d.city, !d.state), 'city', !d.state)+
+        '<div class="cbxrow" style="padding-top:14px">'+
+          '<button class="cbx '+(d.shipSame?'on':'')+'" data-act="togShip">'+(d.shipSame?ic('check',13):'')+'</button>'+
+          '<span>Use project location as shipping location.</span></div>'+
+      '</div>'+
+      (m.error ? '<div class="alert err">'+ic('warn',18,'ai')+'<div>'+esc(m.error)+'</div></div>' : '')+
+      '<div class="req">* indicates required field</div>'+
+    '</div>'+
+    '<div class="modal-foot"><button class="btn btn-flat" data-act="saveQuote">Save</button></div>'+
+  '</div></div>';
+}
+
+/* ==========================================================================
+   9. NOTAS DE SPEC
+   ========================================================================== */
+const SPEC =
+  '<h4>What this page is</h4><ul>'+
+  '<li>Page 2 of <i>SALES REP.pdf</i>: the client portal — <i>&laquo;Software clientes&raquo;</i>.</li>'+
+  '<li>Reproduces the Main Board and the form the client sees when choosing <b>New Request</b>, then adds the '+
+    'two changes the handwritten notes ask for.</li></ul>'+
+  '<h4>The two notes from the PDF</h4>'+
+  '<blockquote>&laquo;AQUÍ SI ES REPRESENTANTE DE VENTAS SE DEBEN AÑADIR LOS CAMPOS DE CLIENTES Y CONTACTOS A '+
+    'LOS QUE VA DIRIGIDO&raquo;</blockquote>'+
+  '<ul><li><span class="pill new">Done</span><i>Directed quote</i> block at the top of <b>Create Quote</b>, '+
+    'visible only for the sales rep role.</li></ul>'+
+  '<blockquote>&laquo;AQUÍ DEBE HABER UN FILTRO O NO SÉ UNA SECCIÓN EN DONDE EL REPRESENTANTE DE VENTAS PUEDA '+
+    'VER SUS COTIZACIONES Y SUS COTIZACIONES DIRIGIDAS&raquo;</blockquote>'+
+  '<ul><li><span class="pill new">Done</span>Filter on the title row, to the right: '+
+    '<b>All / Directed by me</b>.</li>'+
+  '<li>Reading taken: <b>All</b> is everything in the rep’s scope — their own quotes, the ones they directed, '+
+    'and the ones their assigned clients raised. <b>Directed by me</b> narrows to the directed ones.</li>'+
+  '<li>There is no separate filter for the rep’s own quotes: they show under <b>All</b>. '+
+    '<span class="pill chg">Confirm this is enough</span></li></ul>'+
+  '<h4>Asking for a client or a contact</h4><ul>'+
+  '<li><span class="pill new">New</span>A <b>+</b> beside <i>Quote directed to</i> and beside '+
+    '<i>Client contact</i>. A rep can ask for someone they do not have assigned yet.</li>'+
+  '<li><b>New client:</b> name, country, state and city, plus a <i>Contacts</i> row whose <b>+</b> opens name '+
+    'and email typed in place — no intermediate step; one <i>Save</i> stores the client with every row. At least one '+
+    'contact is required — a client with nobody to address is of no use.</li>'+
+  '<li><b>New contact only:</b> just name and email, with <i>Cancel</i> / <i>Add contact</i>. No client is asked for, since the rep may not know yet '+
+    'which one it belongs to.</li>'+
+  '<li><span class="pill chg">Changed</span>Saving the new client or contact <b>does not close Create Quote</b>: '+
+    'it stays in the draft, selected as <i>(new — pending review)</i>, and the rep finishes the form. With a new '+
+    'contact, <i>Quote directed to</i> is optional and an existing client can still be picked.</li>'+
+  '<li>Only when the <b>whole form is saved</b> is the request sent — the new client/contact plus the quote draft. '+
+    'That creates a plain card in <b>Bidding Calculator</b>, with <b>no amount</b> and no marking, and the '+
+    'banner at the foot of the screen. <b>No quote and no cost are generated</b> while it is pending.</li>'+
+  '<li>The same request shows up in the internal prototype: a card in <b>Approval</b> and a note in its '+
+    '<b>Follow Up</b> signed by the reviewer.</li>'+
+  '<li><span class="pill chg">Decide</span>What happens on approval — the draft travels with the request, so '+
+    'the pending card could turn straight into the quote. Confirm.</li></ul>'+
+  '<h4>Two kinds of quote for a rep</h4><ul>'+
+  '<li><span class="pill new">New</span>Clicking <b>New Request</b> as a sales rep first asks which kind: '+
+    '<b>Directed Quote</b> or <b>Quote as Client</b>.</li>'+
+  '<li><b>Directed Quote</b> opens the form with the client and contact block, and files the quote against that '+
+    'client with the rep recorded.</li>'+
+  '<li><b>Quote as Client</b> opens the very same form the clients use, with no target client. The quote is '+
+    'filed with <code>clientId: null</code> and belongs to the rep.</li>'+
+  '<li>The client never sees this step: for a client there is only one way to quote.</li>'+
+  '<li><span class="pill chg">Confirm</span>What a rep’s own quote means commercially — who is billed, and '+
+    'whether it earns commission with no client attached.</li></ul>'+
+  '<h4>Two behaviors, one component</h4><ul>'+
+  '<li><b>Client:</b> board and form unchanged. No filter bar, no directed block.</li>'+
+  '<li><b>Sales Rep:</b> filter bar and directed block appear.</li>'+
+  '<li>The discriminator is <code>session.role</code>, from Firebase Auth custom claims — never a value the '+
+    'browser can set.</li></ul>'+
+  '<h4>Mandatory chain</h4><ul>'+
+  '<li><code>Rep &rarr; Assigned client &rarr; Contact &rarr; Quote</code></li>'+
+  '<li>The contact dropdown stays disabled until a client is picked, and lists contacts of <b>that</b> client only.</li>'+
+  '<li>Same cascade for the location: <code>Country &rarr; State &rarr; City</code>, as in the capture.</li></ul>'+
+  '<h4>Security — non-negotiable</h4><ul>'+
+  '<li>The filtered dropdown is convenience, <b>not</b> security.</li>'+
+  '<li>The backend re-checks <code>exists(salesRepClients/{repId}_{clientId})</code> on every write.</li>'+
+  '<li>A client with <i>Directed Quotes</i> off is rejected server-side even if the rep is assigned.</li>'+
+  '<li>The prototype enforces it on save: pick a client with <i>Directed Quotes</i> off and the save is refused.</li></ul>'+
+  '<h4>Board details taken from the capture</h4><ul>'+
+  '<li>Three columns: Bidding Calculator (blue) · Active Quotes (orange) · History (amber).</li>'+
+  '<li>Each header shows the count, the total <b>in the client’s currency</b>, and its own search.</li>'+
+  '<li><b>All / PreApproved</b> chips belong to Active Quotes only.</li>'+
+  '<li>Card: project name in bold, quote name below, then date. Nothing more — it does not expand.</li></ul>'+
+  '<h4>Open questions</h4><ul>'+
+  '<li>A rep sees clients that may hold different currencies. The prototype totals in USD; how should '+
+    'that be consolidated?</li>'+
+  
+  '<li>What does the client see of a quote their rep directed — is the rep named?</li></ul>';
+
+function notesHtml(){
+  return '<div class="notes"><header>'+ic('book',18)+'<h3>Spec notes</h3>'+
+    '<button class="icon-btn" data-act="notes">'+ic('close',18)+'</button></header>'+
+    '<div class="nbody">'+SPEC+'</div></div>';
+}
+
+/* ==========================================================================
+   10. RENDER
+   ========================================================================== */
+function renderOverlay(){
+  let html = '';
+  if (S.modal) html += '<div id="mmodal">'+
+    (S.modal.kind === 'choice' ? modalChoice() : modalQuote(S.modal))+'</div>';
+  /* La solicitud se abre encima del formulario, sin perderlo. */
+  if (S.reqModal) html += '<div id="reqmodal">'+modalRequest(S.reqModal)+'</div>';
+  if (S.notesOpen) html += notesHtml();
+  $('#overlay').innerHTML = html;
+}
+function render(){
+  renderProto();
+  $('#app').innerHTML = shell(S.view === 'documents' ? viewDocuments() : viewBoard());
+  renderOverlay();
+}
+
+/* ==========================================================================
+   11. EVENTOS
+   ========================================================================== */
+/** Formulario en blanco. La ubicación se precarga solo cuando entra un cliente. */
+function blankQuote(directed){
+  const c = S.role === 'client' ? sessionClient() : null;
+  return { kind:'quote', directed:!!directed, data:{
+    targetClientId:'', targetContactId:'', product:'', project:'', name:'', delivery:'',
+    docs:'', notes:'', shipSame:false,
+    country: c ? c.country : '', state: c ? c.state : '', city: c ? c.city : '' } };
+}
+
+function readFields(){
+  const o = {};
+  document.querySelectorAll('#mmodal [data-f]').forEach(el => { o[el.getAttribute('data-f')] = el.value; });
+  return o;
+}
+function readReqFields(){
+  const o = {};
+  document.querySelectorAll('#reqmodal [data-f]').forEach(el => { o[el.getAttribute('data-f')] = el.value; });
+  return o;
+}
+function keepDraft(){ Object.assign(S.modal.data, readFields()); }
+
+document.addEventListener('click', function(ev){
+  const stop = ev.target.closest('[data-stop]');
+  const el   = ev.target.closest('[data-act]');
+  if (!el) return;
+  const act = el.getAttribute('data-act');
+  const v   = el.getAttribute('data-v');
+  if (act === 'close' && el.classList.contains('scrim') && stop) return;
+  /* Los buscadores se atienden en 'input'. Un clic en ellos no repinta:
+     el campo se volvería a crear, perdería el foco y lo tecleado no llegaría. */
+  if (el.tagName === 'INPUT' && el.type !== 'checkbox' && el.type !== 'radio') return;
+
+  switch(act){
+    case 'close': S.modal = null; break;
+    case 'notes': S.notesOpen = !S.notesOpen; break;
+    /* Reiniciar borra también las solicitudes de prueba (las ve el software interno). */
+    case 'reset':
+      try { localStorage.removeItem(REQ_KEY); } catch(e){}
+      DB = clone(SEED); S.toast = null; break;
+    case 'toastClose': S.toast = null; break;
+    case 'role':
+      S.role = v; S.filterOrigin = 'all';
+      S.toast = null; S.modal = null;
+      break;
+    case 'view':   S.view = v; break;
+    case 'chip':   S.activeChip = v; break;
+    case 'fOrigin':S.filterOrigin = v; break;
+
+    /* El representante elige primero el tipo; el cliente va directo al formulario. */
+    case 'newQuote':
+      S.modal = S.role === 'rep' ? { kind:'choice' } : blankQuote(false);
+      break;
+    case 'pickKind':
+      S.modal = blankQuote(v === 'directed');
+      break;
+
+    /* ---- solicitud de alta ---- */
+    /* Si ya había un alta pendiente en este borrador, se reabre para editarla. */
+    case 'reqClient':
+    case 'reqContact': {
+      keepDraft();
+      const pc = S.modal.data.pendingClient, pk = S.modal.data.pendingContact;
+      S.reqModal = act === 'reqClient'
+        ? { kind:'client',
+            data:{ rName:pc?pc.name:'', rCountry:pc?pc.country:'', rState:pc?pc.state:'', rCity:pc?pc.city:'',
+                   /* copia: lo que se teclee no toca el borrador hasta pulsar Save */
+                   contacts:pc ? pc.contacts.map(k => ({ name:k.name, email:k.email })) : [] } }
+        : { kind:'contact',
+            data:{ kName:pk?pk.name:'', kEmail:pk?pk.email:'', contacts:[] } };
+      break; }
+    case 'reqClose':
+      if (el.classList.contains('scrim') && stop) return;   /* return, no break: si no, el render() del final repinta y mata el clic */
+      S.reqModal = null;
+      break;
+    case 'reqNewContact':
+      Object.assign(S.reqModal.data, readReqFields());
+      S.reqModal.data.contacts.push({ name:'', email:'' });
+      break;
+    case 'reqDelContact':
+      Object.assign(S.reqModal.data, readReqFields());
+      S.reqModal.data.contacts.splice(Number(v),1);
+      break;
+    case 'reqSave': {
+      const f = readReqFields();
+      const isClient = S.reqModal.kind === 'client';
+      Object.assign(S.reqModal.data, f);
+      /* Las filas vacías del todo se ignoran; las a medias se señalan. */
+      const contacts = S.reqModal.data.contacts
+        .map(k => ({ name:(k.name||'').trim(), email:(k.email||'').trim() }))
+        .filter(k => k.name || k.email);
+      if (isClient){
+        if (!(f.rName||'').trim()){   S.reqModal.error = 'Name is required.'; break; }
+        if (!f.rCountry){             S.reqModal.error = 'Country is required.'; break; }
+        if (contacts.some(k => !k.name || !k.email)){
+          S.reqModal.error = 'Each contact needs a name and an email.'; break; }
+        /* Un cliente nuevo sin contacto no sirve: hay que poder dirigirle algo. */
+        if (!contacts.length){        S.reqModal.error = 'Add at least one contact.'; break; }
+      } else {
+        if (!(f.kName||'').trim()){   S.reqModal.error = 'Name is required.'; break; }
+        if (!(f.kEmail||'').trim()){  S.reqModal.error = 'Email is required.'; break; }
+      }
+      /* NO se envía nada todavía: el alta queda dentro del borrador y el
+         representante sigue completando la cotización. El envío a revisión
+         ocurre al guardar el formulario completo. */
+      const d = S.modal.data;
+      if (isClient){
+        d.pendingClient = { name:f.rName.trim(), country:f.rCountry||'', state:f.rState||'', city:f.rCity||'',
+                            contacts:contacts };
+        d.targetClientId  = '__new';
+        d.targetContactId = '__new:0';   /* el contacto pasa a ser obligatorio: se propone el primero */
+      } else {
+        d.pendingContact  = { name:f.kName.trim(), email:f.kEmail.trim() };
+        d.targetContactId = '__newc';
+      }
+      S.modal.error = null;
+      S.reqModal = null;
+      break; }
+
+    case 'togShip':
+      keepDraft();
+      S.modal.data.shipSame = !S.modal.data.shipSame;
+      break;
+
+    case 'saveQuote': {
+      const d        = readFields();
+      const byRep    = S.role === 'rep';
+      const directed = !!S.modal.directed;
+      if (!d.product || !d.project || !d.name){
+        S.modal.error = 'Product, Project Name and Quote Name are required.'; break; }
+      if (!d.country || !d.state || !d.city){
+        S.modal.error = 'Country, State and City are required.'; break; }
+
+      /* ---- Solicitud con un cliente o contacto nuevo ----
+         Todo el formulario viaja a revisión. No se crea cotización ni coste
+         hasta que ES Metals apruebe el alta; la alerta sale ahora, al final. */
+      const md = S.modal.data;
+      const newClient  = directed && d.targetClientId === '__new' && md.pendingClient;
+      const newContact = directed && d.targetContactId === '__newc' && md.pendingContact;
+      if (newClient || newContact){
+        if (!d.targetContactId){ S.modal.error = 'Select the target client contact.'; break; }
+        const rep  = sessionRep();
+        const pc   = md.pendingClient, pk = md.pendingContact;
+        const real = !newClient ? DB.clients.find(c => c.id === d.targetClientId) : null;
+        const contacts = newClient ? pc.contacts : [pk];
+        const chosen   = newClient ? pc.contacts[Number(String(d.targetContactId).split(':')[1])||0] : pk;
+        const req = {
+          id:'req_'+Math.random().toString(36).slice(2,7),
+          kind: newClient ? 'client' : 'contact',
+          clientName: newClient ? pc.name : (real ? real.name : ''),
+          clientId: real ? real.id : null,
+          clientIsNew: !!newClient,
+          country: newClient ? pc.country : '', state: newClient ? pc.state : '', city: newClient ? pc.city : '',
+          contacts: contacts,
+          contactName: chosen.name, contactEmail: chosen.email,
+          /* El borrador de la cotización, para retomarlo tal cual al aprobar. */
+          quote:{ product:d.product, project:d.project, name:d.name, delivery:d.delivery||'',
+                  country:d.country, state:d.state, city:d.city, notes:d.notes||'' },
+          repId: rep?rep.id:null, repName: rep?rep.name:'',
+          createdAt: stamp(), status:'Under review'
+        };
+        pushRequest(req);
+        DB.quotes.push({
+          id:req.id, project:d.project, name:d.name, product:d.product,
+          clientId:null, contactId:null, stage:'bidding', status:'Under review', amount:0,
+          createdAt:req.createdAt, delivery:d.delivery || '—',
+          country:d.country, state:d.state, city:d.city, notes:d.notes || '',
+          docs:[], createdByType:'salesRep', directed:true,
+          salesRepId:rep?rep.id:null, request:req
+        });
+        S.toast = { kind:'warn', msg:'Quote was not generated automatically: A request to create a new client/contact has been submitted' };
+        S.modal = null;
+        break;
+      }
+
+      if (directed){
+        const check = backendValidate({ targetClientId:d.targetClientId, targetContactId:d.targetContactId });
+        if (!check.ok){ S.modal.error = check.msg; break; }
+        if (!d.targetContactId){ S.modal.error = 'Select the target client contact.'; break; }
+      }
+      /* Dirigida: va al cliente destinatario. Como cliente: sin destinatario,
+         queda a nombre de quien la crea. */
+      const clientId = directed ? d.targetClientId : (byRep ? null : S.clientId);
+      const cli      = clientId ? DB.clients.find(x => x.id === clientId) : null;
+      DB.quotes.push({
+        id:'q_'+Math.random().toString(36).slice(2,7),
+        project:d.project, name:d.name, product:d.product,
+        clientId:clientId,
+        contactId: directed ? d.targetContactId
+                            : (cli && cli.contacts[0] ? cli.contacts[0].id : null),
+        stage:'bidding', status:'Draft', amount:0,
+        createdAt:stamp(), delivery:d.delivery || '—',
+        country:d.country, state:d.state, city:d.city, notes:d.notes || '',
+        docs: d.docs ? [d.docs] : [],
+        createdByType: byRep ? 'salesRep' : 'client',
+        directed: directed,
+        salesRepId: byRep ? S.repId : null
+      });
+      S.toast = directed
+        ? { kind:'ok', msg:'Directed quote created for <b>'+esc(cli.name)+'</b>. Sales rep, client and contact all recorded.' }
+        : { kind:'ok', msg:'Quote created. It appears under <b>Bidding Calculator</b>.' };
+      S.modal = null;
+      break; }
+  }
+  render();
+});
+
+function stamp(){
+  const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const d = new Date();
+  let h = d.getHours(); const ap = h >= 12 ? 'pm' : 'am'; h = h % 12 || 12;
+  return M[d.getMonth()]+'/'+String(d.getDate()).padStart(2,'0')+'/'+d.getFullYear()+
+    ' '+h+':'+String(d.getMinutes()).padStart(2,'0')+' '+ap;
+}
+
+document.addEventListener('change', function(ev){
+  const el  = ev.target;
+  const act = el.getAttribute && el.getAttribute('data-act');
+  if (act === 'pickClient'){ S.clientId = el.value; render(); return; }
+  if (act === 'pickRep')   { S.repId = el.value; render(); return; }
+
+  const fld = el.getAttribute && el.getAttribute('data-f');
+  if (!fld) return;
+
+  /* Cascada país -> estado -> ciudad dentro de la solicitud de alta. */
+  if (S.reqModal){
+    if (fld === 'rCountry'){
+      Object.assign(S.reqModal.data, readReqFields(), { rState:'', rCity:'' });
+      renderOverlay(); return;
+    }
+    if (fld === 'rState'){
+      Object.assign(S.reqModal.data, readReqFields(), { rCity:'' });
+      renderOverlay(); return;
+    }
+    Object.assign(S.reqModal.data, readReqFields());
+    return;
+  }
+
+  if (!S.modal) return;
+  /* Cascadas: cliente -> contacto, y país -> estado -> ciudad. */
+  if (fld === 'targetClientId'){
+    /* Con el cliente nuevo elegido, su contacto es obligatorio: se propone el primero.
+       Un contacto nuevo ya pedido se conserva al elegir un cliente existente. */
+    const keepNewc = S.modal.data.pendingContact && el.value !== '__new';
+    Object.assign(S.modal.data, readFields(),
+      { targetContactId: el.value === '__new' ? '__new:0' : (keepNewc ? '__newc' : '') });
+    S.modal.error = null; renderOverlay(); return;
+  }
+  if (fld === 'country'){
+    Object.assign(S.modal.data, readFields(), { state:'', city:'' });
+    renderOverlay(); return;
+  }
+  if (fld === 'state'){
+    Object.assign(S.modal.data, readFields(), { city:'' });
+    renderOverlay(); return;
+  }
+  Object.assign(S.modal.data, readFields());
+});
+
+document.addEventListener('input', function(ev){
+  const el  = ev.target;
+  const act = el.getAttribute && el.getAttribute('data-act');
+  if (act === 'search'){
+    S.search[el.getAttribute('data-v')] = el.value;
+    const p = el.selectionStart, stage = el.getAttribute('data-v');
+    render();
+    const n = document.querySelector('[data-act="search"][data-v="'+stage+'"]');
+    if (n){ n.focus(); n.setSelectionRange(p,p); }
+    return;
+  }
+  /* Filas de contacto del cliente nuevo: se guardan al teclear, sin repintar. */
+  if (act === 'reqRow' && S.reqModal){
+    const k = S.reqModal.data.contacts[Number(el.getAttribute('data-v'))];
+    if (k) k[el.getAttribute('data-k')] = el.value;
+    return;
+  }
+  const fld = el.getAttribute && el.getAttribute('data-f');
+  if (!fld) return;
+  if (S.reqModal) S.reqModal.data[fld] = el.value;
+  else if (S.modal) S.modal.data[fld] = el.value;
+});
+
+document.addEventListener('focusin',  e => { const x = e.target.closest('.f'); if (x) x.classList.add('focus'); });
+document.addEventListener('focusout', e => { const x = e.target.closest('.f'); if (x) x.classList.remove('focus'); });
+document.addEventListener('keydown',  e => { if (e.key === 'Escape' && S.modal){ S.modal = null; render(); } });
+
+restoreRequests();
+render();
+</script>
+</body>
+</html>
