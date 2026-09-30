@@ -182,6 +182,9 @@ button{font-family:inherit}
   display:grid;place-items:center}
 .choice .ct{display:block;font-size:14px;font-weight:500;margin-bottom:4px}
 .choice .cd{display:block;font-size:12.5px;color:var(--text2);line-height:1.5}
+/* Opción no habilitada para este representante: se ve atenuada y no responde. */
+.choice:disabled{cursor:default;opacity:.45}
+.choice:disabled:hover{border-color:var(--border);background:#fff}
 
 /* ---------- avisos ---------- */
 .alert{display:flex;gap:11px;align-items:flex-start;border-radius:4px;padding:11px 14px;font-size:12.5px;
@@ -318,8 +321,8 @@ const SEED = {
   ],
 
   salesReps: [
-    { id:'rep_mg', name:'Michael Grant', city:'Tampa', email:'michael.grant@esmetals.com' },
-    { id:'rep_lm', name:'Laura Méndez',  city:'Miami', email:'laura.mendez@esmetals.com' }
+    { id:'rep_mg', name:'Michael Grant', city:'Tampa', email:'michael.grant@esmetals.com', quoteAsClient:true },
+    { id:'rep_lm', name:'Laura Méndez',  city:'Miami', email:'laura.mendez@esmetals.com', quoteAsClient:false }
   ],
 
   /* La asociación se administra en el software interno; el portal solo la lee. */
@@ -663,6 +666,18 @@ function pushRequest(req){
 }
 
 /** Al abrir el portal, las solicitudes pendientes vuelven a su tarjeta en Bidding. */
+/* «Enabled Quote as Client» se marca en la ficha del representante del software
+   interno; el portal lo lee al abrir y al volver a la pestaña. */
+const REP_FLAGS_KEY = 'esm_rep_flags_v1';
+function applyRepFlags(){
+  let f = {};
+  try { f = JSON.parse(localStorage.getItem(REP_FLAGS_KEY) || '{}'); } catch(e){ f = {}; }
+  DB.salesReps.forEach(r => { if (f[r.id]) r.quoteAsClient = f[r.id].quoteAsClient; });
+}
+function syncRepFlags(){ applyRepFlags(); render(); }
+window.addEventListener('storage', ev => { if (ev.key === REP_FLAGS_KEY) syncRepFlags(); });
+window.addEventListener('focus', syncRepFlags);
+
 function restoreRequests(){
   let all = [];
   try { all = JSON.parse(localStorage.getItem(REQ_KEY) || '[]'); } catch(e){ all = []; }
@@ -749,8 +764,11 @@ function modalRequest(m){
  * El cliente nunca ve este paso: para él solo existe una forma de cotizar.
  */
 function modalChoice(){
-  const opt = (v, icon, title, desc) =>
-    '<button class="choice" data-act="pickKind" data-v="'+v+'">'+
+  /* «Quote as Client» solo si el software interno lo tiene habilitado para este representante. */
+  const rep = sessionRep();
+  const asClient = !rep || rep.quoteAsClient !== false;
+  const opt = (v, icon, title, desc, off) =>
+    '<button class="choice" data-act="pickKind" data-v="'+v+'"'+(off?' disabled':'')+'>'+
       '<span class="cic">'+ic(icon,20)+'</span>'+
       '<span><span class="ct">'+title+'</span><span class="cd">'+desc+'</span></span>'+
     '</button>';
@@ -764,7 +782,7 @@ function modalChoice(){
           'Addressed to one of your assigned clients. Adds the client and contact fields, and records you as '+
           'the sales rep behind it.')+
       opt('standard','doc','Quote as Client',
-          'The same form your clients use, with no target client. It is filed as your own quote.')+
+          'The same form your clients use, with no target client. It is filed as your own quote.', !asClient)+
     '</div>'+
   '</div></div>';
 }
@@ -993,7 +1011,7 @@ document.addEventListener('click', function(ev){
     /* Reiniciar borra también las solicitudes de prueba (las ve el software interno). */
     case 'reset':
       try { localStorage.removeItem(REQ_KEY); } catch(e){}
-      DB = clone(SEED); S.toast = null; break;
+      DB = clone(SEED); applyRepFlags(); S.toast = null; break;
     case 'toastClose': S.toast = null; break;
     case 'role':
       S.role = v; S.filterOrigin = 'all';
@@ -1008,6 +1026,7 @@ document.addEventListener('click', function(ev){
       S.modal = S.role === 'rep' ? { kind:'choice' } : blankQuote(false);
       break;
     case 'pickKind':
+      if (v === 'standard' && sessionRep() && sessionRep().quoteAsClient === false) return;
       S.modal = blankQuote(v === 'directed');
       break;
 
@@ -1240,6 +1259,7 @@ document.addEventListener('focusin',  e => { const x = e.target.closest('.f'); i
 document.addEventListener('focusout', e => { const x = e.target.closest('.f'); if (x) x.classList.remove('focus'); });
 document.addEventListener('keydown',  e => { if (e.key === 'Escape' && S.modal){ S.modal = null; render(); } });
 
+applyRepFlags();
 restoreRequests();
 render();
 </script>

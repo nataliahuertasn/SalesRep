@@ -809,7 +809,7 @@ const SEED = {
     /* El representante es una EMPRESA. Las personas van en contacts[],
        con la misma forma que los contactos de cliente. */
     { id:'rep_mg', name:'Grant Building Products', email:'info@grantbuilding.com', phone:'+1 617 555 0142',
-      territory:[{ country:'United States', state:'Florida' }, { country:'United States', state:'Georgia' }], currencyId:'cur_usd', languageId:'lng_en', active:true, standard:true,
+      territory:[{ country:'United States', state:'Florida' }, { country:'United States', state:'Georgia' }], currencyId:'cur_usd', languageId:'lng_en', active:true, standard:true, quoteAsClient:true,
       country:'United States', note:'', margin:40, accMargin:15, commission:1,
       contacts:[
         { id:'rc_mg', name:'Michael Grant', email:'michael.grant@grantbuilding.com', role:'Sales Manager' },
@@ -817,7 +817,7 @@ const SEED = {
       ],
       tiers:{ thresholdUsd:1000000, belowPct:3.5, abovePct:2.0 }, authUid:'uid_mg' },
     { id:'rep_lm', name:'Méndez Façade Group', email:'contacto@mendezfacade.com', phone:'+1 305 555 0198',
-      territory:[{ country:'United States', state:'Florida' }], currencyId:'cur_usd', languageId:'lng_es', active:true, standard:false,
+      territory:[{ country:'United States', state:'Florida' }], currencyId:'cur_usd', languageId:'lng_es', active:true, standard:false, quoteAsClient:false,
       country:'United States', note:'', margin:42, accMargin:15, commission:1.5,
       contacts:[
         { id:'rc_lm', name:'Laura Méndez', email:'laura.mendez@mendezfacade.com', role:'Principal' },
@@ -826,14 +826,14 @@ const SEED = {
       tiers:{ thresholdUsd:1000000, belowPct:4.0, abovePct:2.5 }, authUid:'uid_lm' },
     /* Único en Tennessee: demuestra el caso de un solo representante. */
     { id:'rep_rs', name:'Rainscreen South', email:'info@rainscreensouth.com', phone:'+1 615 555 0133',
-      territory:[{ country:'United States', state:'Tennessee' }], currencyId:'cur_usd', languageId:'lng_en', active:true, standard:false,
+      territory:[{ country:'United States', state:'Tennessee' }], currencyId:'cur_usd', languageId:'lng_en', active:true, standard:false, quoteAsClient:true,
       country:'United States', note:'', margin:41, accMargin:15, commission:1,
       contacts:[
         { id:'rc_bk', name:'Brian Keller', email:'brian@rainscreensouth.com', role:'Estimator' }
       ],
       tiers:{ thresholdUsd:1000000, belowPct:3.8, abovePct:2.2 }, authUid:'uid_rs' },
     { id:'rep_dc', name:'Cho Architectural Supply', email:'info@choarch.com', phone:'+1 212 555 0177',
-      territory:[{ country:'Colombia', state:'Bolívar' }], currencyId:'cur_usd', languageId:'lng_en', active:false, standard:true,
+      territory:[{ country:'Colombia', state:'Bolívar' }], currencyId:'cur_usd', languageId:'lng_en', active:false, standard:true, quoteAsClient:true,
       country:'Colombia', note:'', margin:38, accMargin:12, commission:1,
       contacts:[
         { id:'rc_dc', name:'David Cho', email:'david.cho@choarch.com', role:'Owner' }
@@ -1785,6 +1785,15 @@ function repDetail(){
         row('Standard Client', chk(r.standard, true))+
       '</div>'+
       '<hr class="hr">'+
+      /* Igual que Enabled Directed Quotes en la ficha de cliente: decide si el portal
+         le ofrece «Quote as Client» a este representante. */
+      '<div class="rows">'+
+        row('Enabled Quote as Client',
+            chk(r.quoteAsClient, false, 'toggleQuoteAsClient', r.id)+
+            '<div class="hint" style="margin-top:6px">Allows this sales rep to create quotes as a client. '+
+            'With this turned off, only directed quotes are available.</div>')+
+      '</div>'+
+      '<hr class="hr">'+
       '<div class="sect-title">Commission</div>'+
       '<div class="rows">'+
         row('Threshold', '<b>'+money(r.tiers.thresholdUsd)+'</b>'+
@@ -2020,6 +2029,15 @@ const CATEGORY = 'ESM 5LS - V - HP';
    (limpieza pedida por Natalia el 29 sep 2026). */
 const REQ_KEY = 'esm_client_requests_v2';
 try { localStorage.removeItem('esm_client_requests'); } catch(e){}
+
+/* Puente con el portal: qué representantes tienen «Quote as Client» activo.
+   Se publica al abrir y cada vez que cambia (casilla de la ficha o formulario). */
+const REP_FLAGS_KEY = 'esm_rep_flags_v1';
+function publishRepFlags(){
+  const o = {};
+  DB.salesReps.forEach(r => { o[r.id] = { quoteAsClient: r.quoteAsClient !== false }; });
+  try { localStorage.setItem(REP_FLAGS_KEY, JSON.stringify(o)); } catch(e){}
+}
 
 function loadRequests(){
   let all = [];
@@ -2634,6 +2652,9 @@ function modalRep(m){
       '<div style="display:flex;align-items:center;gap:11px;font-size:13px;margin:16px 0 8px">'+
         '<button class="cbx '+(d.standard?'on':'')+'" data-act="togFlag" data-v="standard">'+
         (d.standard?ic('check',13):'')+'</button><span>Standard client</span></div>'+
+      '<div style="display:flex;align-items:center;gap:11px;font-size:13px;margin:8px 0 8px">'+
+        '<button class="cbx '+(d.quoteAsClient?'on':'')+'" data-act="togFlag" data-v="quoteAsClient">'+
+        (d.quoteAsClient?ic('check',13):'')+'</button><span>Enabled Quote as Client</span></div>'+
 
       /* Lo propio del representante, debajo de lo que comparte con un cliente. */
       '<div class="sect-title" style="margin-top:26px">Commission on directed quotes</div>'+
@@ -3496,7 +3517,7 @@ document.addEventListener('click', function(ev){
     /* Reiniciar también borra las solicitudes de prueba enviadas desde el portal. */
     case 'reset':
       try { localStorage.removeItem(REQ_KEY); } catch(e){}
-      DB = clone(SEED); S.openQuote = null; S.toast = null; break;
+      DB = clone(SEED); S.openQuote = null; S.toast = null; publishRepFlags(); break;
 
     case 'toggleClient': {
       const c = DB.clients.find(x => x.id === v); if (c) c.active = !c.active; break; }
@@ -3504,10 +3525,14 @@ document.addEventListener('click', function(ev){
       const r = DB.salesReps.find(x => x.id === v); if (r) r.active = !r.active; break; }
     case 'toggleDirected': {
       const c = DB.clients.find(x => x.id === v); if (c) c.directedQuotes = !c.directedQuotes; break; }
+    case 'toggleQuoteAsClient': {
+      const r = DB.salesReps.find(x => x.id === v);
+      if (r){ r.quoteAsClient = !r.quoteAsClient; publishRepFlags(); }
+      break; }
 
     case 'newRep':
       S.modal = { kind:'newRep', data:{ name:'', email:'', phone:'', cityId:DB.cities[0].id,
-        currencyId:DB.currencies[0].id, languageId:DB.languages[0].id, active:true, standard:false, country:'United States', note:'', margin:40, accMargin:15, commission:1, clientIds:[], territory:[],
+        currencyId:DB.currencies[0].id, languageId:DB.languages[0].id, active:true, standard:false, quoteAsClient:true, country:'United States', note:'', margin:40, accMargin:15, commission:1, clientIds:[], territory:[],
         contacts:[], ctName:'', ctRole:'', ctEmail:'',
         tiers:{ thresholdUsd:1000000, belowPct:3.5, abovePct:2.0 } } };
       break;
@@ -3602,7 +3627,7 @@ document.addEventListener('click', function(ev){
         name:f.name.trim(), territory:(S.modal.data.territory || []),
         country:f.country, note:f.note||'',
         currencyId:f.currencyId, languageId:f.languageId,
-        contacts: S.modal.data.contacts || [], standard: !!S.modal.data.standard,
+        contacts: S.modal.data.contacts || [], standard: !!S.modal.data.standard, quoteAsClient: !!S.modal.data.quoteAsClient,
         margin:Number(f.margin), accMargin:Number(f.accMargin), commission:Number(f.commission),
         tiers:{ thresholdUsd:Number(f.threshold), belowPct:Number(f.belowPct), abovePct:Number(f.abovePct) }
       };
@@ -3617,6 +3642,7 @@ document.addEventListener('click', function(ev){
         S.selRep = id; S.clientsTab = 'reps';
       }
       S.modal = null;
+      publishRepFlags();
       break; }
 
     case 'assignFromRep':    S.modal = { kind:'assign', repId:v, q:'' }; break;
@@ -3926,6 +3952,7 @@ document.addEventListener('keydown',  e => {
   else if (S.menu){ S.menu = null; render(); }
 });
 
+publishRepFlags();
 render();
 </script>
 </body>

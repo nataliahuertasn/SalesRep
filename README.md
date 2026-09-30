@@ -137,7 +137,11 @@ notas manuscritas.
   - **Directed Quote** — dirigida a uno de sus clientes asociados. Abre el
     formulario con los campos de cliente y contacto.
   - **Quote as Client** — el mismo formulario que usan los clientes, sin
-    destinatario. Queda a nombre del representante, con `clientId: null`.
+    destinatario. Queda a nombre del representante, con `clientId: null`. Solo está
+    habilitado si el representante tiene marcado **Enabled Quote as Client** en su ficha del
+    software interno (casilla igual a *Enabled Directed Quotes* del cliente, también en su
+    formulario); si no, la opción aparece atenuada. El cambio llega al portal al instante
+    (mismo puente de navegador que las solicitudes). Laura Méndez viene sin habilitar.
 - Filtro `All / Directed by me` en la misma línea del título, sin recuadro.
 - **Solicitud de alta de cliente o contacto** con el `+` junto a *Quote directed to*
   y a *Client contact*. **Cliente nuevo:** nombre, país, estado y ciudad, más un bloque
