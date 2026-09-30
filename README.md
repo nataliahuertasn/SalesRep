@@ -140,7 +140,8 @@ notas manuscritas.
     destinatario. Queda a nombre del representante, con `clientId: null`. Solo está
     habilitado si el representante tiene marcado **Enabled Quote as Client** en su ficha del
     software interno (casilla igual a *Enabled Directed Quotes* del cliente, también en su
-    formulario); si no, la opción aparece atenuada. El cambio llega al portal al instante
+    formulario); si no, la opción ni aparece y *New Request* abre directamente Directed Quote.
+    El cambio llega al portal al instante
     (mismo puente de navegador que las solicitudes). Laura Méndez viene sin habilitar.
 - Filtro `All / Directed by me` en la misma línea del título, sin recuadro.
 - **Solicitud de alta de cliente o contacto** con el `+` junto a *Quote directed to*

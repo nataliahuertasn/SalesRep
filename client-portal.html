@@ -182,9 +182,6 @@ button{font-family:inherit}
   display:grid;place-items:center}
 .choice .ct{display:block;font-size:14px;font-weight:500;margin-bottom:4px}
 .choice .cd{display:block;font-size:12.5px;color:var(--text2);line-height:1.5}
-/* Opción no habilitada para este representante: se ve atenuada y no responde. */
-.choice:disabled{cursor:default;opacity:.45}
-.choice:disabled:hover{border-color:var(--border);background:#fff}
 
 /* ---------- avisos ---------- */
 .alert{display:flex;gap:11px;align-items:flex-start;border-radius:4px;padding:11px 14px;font-size:12.5px;
@@ -767,8 +764,8 @@ function modalChoice(){
   /* «Quote as Client» solo si el software interno lo tiene habilitado para este representante. */
   const rep = sessionRep();
   const asClient = !rep || rep.quoteAsClient !== false;
-  const opt = (v, icon, title, desc, off) =>
-    '<button class="choice" data-act="pickKind" data-v="'+v+'"'+(off?' disabled':'')+'>'+
+  const opt = (v, icon, title, desc) =>
+    '<button class="choice" data-act="pickKind" data-v="'+v+'">'+
       '<span class="cic">'+ic(icon,20)+'</span>'+
       '<span><span class="ct">'+title+'</span><span class="cd">'+desc+'</span></span>'+
     '</button>';
@@ -781,8 +778,8 @@ function modalChoice(){
       opt('directed','arrow-r','Directed Quote',
           'Addressed to one of your assigned clients. Adds the client and contact fields, and records you as '+
           'the sales rep behind it.')+
-      opt('standard','doc','Quote as Client',
-          'The same form your clients use, with no target client. It is filed as your own quote.', !asClient)+
+      (asClient ? opt('standard','doc','Quote as Client',
+          'The same form your clients use, with no target client. It is filed as your own quote.') : '')+
     '</div>'+
   '</div></div>';
 }
@@ -1023,7 +1020,9 @@ document.addEventListener('click', function(ev){
 
     /* El representante elige primero el tipo; el cliente va directo al formulario. */
     case 'newQuote':
-      S.modal = S.role === 'rep' ? { kind:'choice' } : blankQuote(false);
+      /* Sin «Quote as Client» habilitado solo queda Directed Quote: no se pregunta, se abre directo. */
+      if (S.role === 'rep') S.modal = sessionRep() && sessionRep().quoteAsClient === false ? blankQuote(true) : { kind:'choice' };
+      else S.modal = blankQuote(false);
       break;
     case 'pickKind':
       if (v === 'standard' && sessionRep() && sessionRep().quoteAsClient === false) return;
