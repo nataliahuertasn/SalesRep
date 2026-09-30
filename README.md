@@ -328,7 +328,6 @@ Una de las dos reglas tiene que ceder:
 10. ¿Qué pasa si un representante queda inactivo con cotizaciones vivas?
 
 Ninguna de las que quedan bloquea el arranque ni cambia el dinero que se paga.
-El detalle de cada una está en `sales-rep-analysis.html`.
 
 ## Dos hallazgos que conviene revisar antes de programar
 
